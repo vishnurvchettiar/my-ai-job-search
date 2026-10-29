@@ -1,0 +1,34 @@
+﻿# Personal sensitive data - NEVER commit these
+cv/*.pdf
+cover_letters/*.pdf
+documents/applications/
+documents/*.pdf
+*.env
+
+# Build artifacts
+dashboard/bin/
+dashboard/obj/
+dashboard/.vs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# Node / Bun
+node_modules/
+bun.lockb
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.idea/
+*.suo
+*.user
+.vs/

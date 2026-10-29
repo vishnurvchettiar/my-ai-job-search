@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "HpQiJUHGJA0=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\DELL\\Desktop\\my-ai-job-search\\dashboard\\JobSearchDashboard\\JobSearchDashboard.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\DELL\\.nuget\\packages\\csvhelper\\33.0.1\\csvhelper.33.0.1.nupkg.sha512"
+  ],
+  "logs": []
+}

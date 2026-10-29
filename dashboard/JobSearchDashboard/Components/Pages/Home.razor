@@ -1,0 +1,241 @@
+﻿@page "/"
+@using JobSearchDashboard.Models
+@using JobSearchDashboard.Services
+@inject JobApplicationService AppService
+@rendermode InteractiveServer
+
+<PageTitle>My AI Job Search — Dashboard</PageTitle>
+
+<div class="dashboard-header">
+    <div class="header-brand">
+        <span class="header-icon">🤖</span>
+        <div>
+            <h1>My AI Job Search</h1>
+            <p class="header-sub">Vishnu Chettiar · SDET / QA Automation / .NET Developer</p>
+        </div>
+    </div>
+    <div class="header-actions">
+        <span class="today-badge">📅 @DateTime.Today.ToString("dd MMM yyyy")</span>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="stats-grid">
+    <div class="stat-card stat-total">
+        <div class="stat-icon">📋</div>
+        <div class="stat-value">@AppService.TotalCount</div>
+        <div class="stat-label">Total Applications</div>
+    </div>
+    <div class="stat-card stat-interview">
+        <div class="stat-icon">🎤</div>
+        <div class="stat-value">@AppService.InterviewCount</div>
+        <div class="stat-label">Interviews</div>
+    </div>
+    <div class="stat-card stat-offer">
+        <div class="stat-icon">🎉</div>
+        <div class="stat-value">@AppService.OfferCount</div>
+        <div class="stat-label">Offers</div>
+    </div>
+    <div class="stat-card stat-cold">
+        <div class="stat-icon">📧</div>
+        <div class="stat-value">@AppService.ColdEmailCount</div>
+        <div class="stat-label">Cold Emails</div>
+    </div>
+    <div class="stat-card stat-rate">
+        <div class="stat-icon">📈</div>
+        <div class="stat-value">@AppService.ResponseRate.ToString("F0")%</div>
+        <div class="stat-label">Response Rate</div>
+    </div>
+    <div class="stat-card stat-fit">
+        <div class="stat-icon">⭐</div>
+        <div class="stat-value">@AppService.AvgFitScore.ToString("F1")</div>
+        <div class="stat-label">Avg Fit Score</div>
+    </div>
+</div>
+
+<!-- Add Application Form -->
+<div class="section-card">
+    <div class="section-header" @onclick="ToggleAddForm">
+        <h2>➕ Add Application</h2>
+        <span class="toggle-icon">@(showAddForm ? "▲" : "▼")</span>
+    </div>
+    @if (showAddForm)
+    {
+        <div class="add-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Company *</label>
+                    <input @bind="newApp.Company" placeholder="e.g. Infosys" class="form-input"/>
+                </div>
+                <div class="form-group">
+                    <label>Role *</label>
+                    <input @bind="newApp.Role" placeholder="e.g. SDET" class="form-input"/>
+                </div>
+                <div class="form-group">
+                    <label>Job URL</label>
+                    <input @bind="newApp.Url" placeholder="https://..." class="form-input"/>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Status</label>
+                    <select @bind="newApp.Status" class="form-input">
+                        <option value="applied">📤 Applied</option>
+                        <option value="cold_email_drafted">✉️ Cold Email Drafted</option>
+                        <option value="cold_email_sent">📨 Cold Email Sent</option>
+                        <option value="ready_to_send">⚡ Ready to Send</option>
+                        <option value="interview">🎤 Interview</option>
+                        <option value="offer">🎉 Offer</option>
+                        <option value="rejected">❌ Rejected</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Fit Score (1-5)</label>
+                    <input @bind="newApp.FitScore" type="number" min="1" max="5" step="0.5" class="form-input"/>
+                </div>
+                <div class="form-group">
+                    <label>Salary / CTC</label>
+                    <input @bind="newApp.Salary" placeholder="e.g. 8-12 LPA" class="form-input"/>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group form-wide">
+                    <label>Notes</label>
+                    <textarea @bind="newApp.Notes" placeholder="Any notes..." class="form-input" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="form-checkboxes">
+                <label><input type="checkbox" @bind="newApp.ColdEmailSent" /> Cold Email Sent</label>
+                <label><input type="checkbox" @bind="newApp.CvTailored" /> CV Tailored</label>
+                <label><input type="checkbox" @bind="newApp.CoverLetterDone" /> Cover Letter Done</label>
+            </div>
+            <button class="btn-primary" @onclick="AddApplication">Save Application</button>
+            @if (!string.IsNullOrEmpty(successMsg))
+            {
+                <span class="success-msg">@successMsg</span>
+            }
+        </div>
+    }
+</div>
+
+<!-- Applications Table -->
+<div class="section-card">
+    <div class="section-header">
+        <h2>📋 All Applications</h2>
+        <div class="filter-row">
+            <input @bind="searchTerm" @bind:event="oninput" placeholder="🔍 Search..." class="search-input"/>
+            <select @bind="statusFilter" class="filter-select">
+                <option value="">All Statuses</option>
+                <option value="applied">Applied</option>
+                <option value="cold_email_sent">Cold Email Sent</option>
+                <option value="interview">Interview</option>
+                <option value="offer">Offer</option>
+                <option value="rejected">Rejected</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="apps-table">
+            <thead>
+                <tr>
+                    <th>Company</th>
+                    <th>Role</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Fit</th>
+                    <th>📧</th>
+                    <th>📄</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var app in FilteredApps)
+                {
+                    <tr class="app-row">
+                        <td>
+                            @if (!string.IsNullOrEmpty(app.Url))
+                            {
+                                <a href="@app.Url" target="_blank" class="company-link">@app.Company</a>
+                            }
+                            else
+                            {
+                                <span class="company-name">@app.Company</span>
+                            }
+                        </td>
+                        <td class="role-cell">@app.Role</td>
+                        <td class="date-cell">@app.DateApplied.ToString("dd MMM")</td>
+                        <td>
+                            <span class="badge @app.StatusBadgeClass">@app.StatusIcon @app.Status.Replace("_", " ")</span>
+                        </td>
+                        <td class="fit-cell">
+                            @if (app.FitScore > 0)
+                            {
+                                <span class="fit-score fit-@(app.FitScore >= 4 ? "high" : app.FitScore >= 3 ? "mid" : "low")">@app.FitScore.ToString("F1")</span>
+                            }
+                        </td>
+                        <td class="check-cell">@(app.ColdEmailSent ? "✅" : "—")</td>
+                        <td class="check-cell">@(app.CvTailored ? "✅" : "—")</td>
+                        <td class="actions-cell">
+                            <select class="status-select" value="@app.Status"
+                                    @onchange="e => UpdateStatus(app, e.Value?.ToString() ?? app.Status)">
+                                <option value="applied">Applied</option>
+                                <option value="cold_email_drafted">Cold Email Drafted</option>
+                                <option value="cold_email_sent">Cold Email Sent</option>
+                                <option value="ready_to_send">Ready to Send</option>
+                                <option value="interview">Interview</option>
+                                <option value="offer">Offer</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                            <button class="btn-delete" @onclick="() => DeleteApp(app.Id)" title="Delete">🗑️</button>
+                        </td>
+                    </tr>
+                }
+                @if (!FilteredApps.Any())
+                {
+                    <tr><td colspan="8" class="empty-row">No applications yet. Add your first one above!</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    private bool showAddForm = false;
+    private string searchTerm = "";
+    private string statusFilter = "";
+    private string successMsg = "";
+    private JobApplication newApp = new();
+
+    private List<JobApplication> FilteredApps => AppService.GetAll()
+        .Where(a =>
+            (string.IsNullOrEmpty(searchTerm) ||
+             a.Company.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+             a.Role.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) &&
+            (string.IsNullOrEmpty(statusFilter) || a.Status == statusFilter))
+        .ToList();
+
+    private void ToggleAddForm() => showAddForm = !showAddForm;
+
+    private void AddApplication()
+    {
+        if (string.IsNullOrWhiteSpace(newApp.Company) || string.IsNullOrWhiteSpace(newApp.Role))
+        {
+            successMsg = "⚠️ Company and Role are required.";
+            return;
+        }
+        AppService.Add(newApp);
+        newApp = new();
+        successMsg = "✅ Application saved!";
+        showAddForm = false;
+        Task.Delay(3000).ContinueWith(_ => { successMsg = ""; InvokeAsync(StateHasChanged); });
+    }
+
+    private void UpdateStatus(JobApplication app, string newStatus)
+    {
+        app.Status = newStatus;
+        AppService.Update(app);
+    }
+
+    private void DeleteApp(int id) => AppService.Delete(id);
+}
