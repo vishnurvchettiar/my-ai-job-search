@@ -1,20 +1,20 @@
-﻿# Personal sensitive data - NEVER commit these
+﻿# Personal sensitive data
 cv/*.pdf
 cover_letters/*.pdf
 documents/applications/
-documents/*.pdf
 *.env
+*.env.local
 
-# Build artifacts
-dashboard/bin/
-dashboard/obj/
-dashboard/.vs/
+# .NET build artifacts
+**/bin/
+**/obj/
+*.user
+.vs/
 
 # Python
 __pycache__/
 *.pyc
 *.pyo
-*.egg-info/
 .venv/
 venv/
 
@@ -26,9 +26,3 @@ bun.lockb
 .DS_Store
 Thumbs.db
 desktop.ini
-
-# IDE
-.idea/
-*.suo
-*.user
-.vs/

@@ -1,23 +1,22 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+<div class="page-wrapper">
+    <nav class="navbar">
+        <a href="/" class="nav-brand">🤖 My AI Job Search</a>
+        <div class="nav-links">
+            <a href="/" class="nav-link" Match="NavLinkMatch.All">📋 Dashboard</a>
+            <a href="/cold-email" class="nav-link">📧 Cold Email</a>
+            <a href="/upskill" class="nav-link">📚 Upskill</a>
         </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
+        <div class="nav-right">
+            <span class="nav-user">👤 Vishnu Chettiar</span>
+        </div>
+    </nav>
+    <main class="container">
+        @Body
     </main>
-</div>
-
-<div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
+    <footer class="footer">
+        <span>My AI Job Search · Built with Blazor .NET 9 · Private & Secure</span>
+        <span class="footer-note">🔒 Source code is private — your data stays yours</span>
+    </footer>
 </div>

@@ -1,0 +1,125 @@
+﻿@page "/upskill"
+@rendermode InteractiveServer
+
+<PageTitle>Upskill Plan — My AI Job Search</PageTitle>
+
+<div class="dashboard-header">
+    <div class="header-brand">
+        <span class="header-icon">📚</span>
+        <div>
+            <h1>Upskill Plan</h1>
+            <p class="header-sub">Track skill gaps and your learning progress</p>
+        </div>
+    </div>
+</div>
+
+<!-- Priority Skills -->
+<div class="section-card">
+    <div class="section-header"><h2>🎯 High-Priority Skill Gaps</h2></div>
+    <div class="add-form">
+        <div class="skills-grid">
+            @foreach (var skill in skills)
+            {
+                <div class="skill-card">
+                    <div class="skill-header">
+                        <span class="skill-name">@skill.Name</span>
+                        <span class="priority-badge priority-@skill.Priority.ToLower()">@skill.Priority</span>
+                    </div>
+                    <div class="skill-freq">Seen in @skill.Frequency/10 recent JDs</div>
+                    <div class="progress-bar-wrap">
+                        <div class="progress-bar" style="width: @(skill.Progress)%"></div>
+                    </div>
+                    <div class="skill-meta">
+                        <span>@skill.Progress% complete</span>
+                        <span>~@skill.EstWeeks wks</span>
+                    </div>
+                    <div class="skill-resource">📖 <a href="@skill.ResourceUrl" target="_blank" class="company-link">@skill.Resource</a></div>
+                    <div class="skill-actions">
+                        <button class="btn-small" @onclick="() => UpdateProgress(skill, Math.Min(skill.Progress + 10, 100))">+10% Done</button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Add Skill Gap -->
+<div class="section-card">
+    <div class="section-header" @onclick="ToggleAdd">
+        <h2>➕ Add Skill Gap</h2>
+        <span class="toggle-icon">@(showAdd ? "▲" : "▼")</span>
+    </div>
+    @if (showAdd)
+    {
+        <div class="add-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Skill Name *</label>
+                    <input @bind="newSkill.Name" placeholder="e.g. Cypress" class="form-input"/>
+                </div>
+                <div class="form-group">
+                    <label>Priority</label>
+                    <select @bind="newSkill.Priority" class="form-input">
+                        <option>High</option>
+                        <option>Medium</option>
+                        <option>Low</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Est. Weeks</label>
+                    <input @bind="newSkill.EstWeeks" type="number" min="1" class="form-input"/>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Resource / Course</label>
+                    <input @bind="newSkill.Resource" placeholder="e.g. Udemy - Cypress Bootcamp" class="form-input"/>
+                </div>
+                <div class="form-group form-wide">
+                    <label>Resource URL</label>
+                    <input @bind="newSkill.ResourceUrl" placeholder="https://..." class="form-input"/>
+                </div>
+            </div>
+            <button class="btn-primary" @onclick="AddSkill">Save Skill Gap</button>
+        </div>
+    }
+</div>
+
+<style>
+.skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.skill-card { background: #1c2128; border: 1px solid #30363d; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+.skill-header { display: flex; justify-content: space-between; align-items: center; }
+.skill-name { font-weight: 600; color: #e6edf3; }
+.priority-badge { padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+.priority-high   { background: rgba(248,81,73,0.15);   color: #f85149; border: 1px solid rgba(248,81,73,0.3); }
+.priority-medium { background: rgba(227,179,65,0.15);  color: #e3b341; border: 1px solid rgba(227,179,65,0.3); }
+.priority-low    { background: rgba(88,166,255,0.15);  color: #58a6ff; border: 1px solid rgba(88,166,255,0.3); }
+.skill-freq { font-size: 0.8rem; color: #8b949e; }
+.progress-bar-wrap { background: #0d1117; border-radius: 4px; height: 6px; overflow: hidden; }
+.progress-bar { background: linear-gradient(90deg, #58a6ff, #7ee787); height: 100%; border-radius: 4px; transition: width 0.4s; }
+.skill-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: #8b949e; }
+.skill-resource { font-size: 0.8rem; color: #8b949e; }
+.skill-actions { display: flex; gap: 8px; margin-top: 4px; }
+</style>
+
+@code {
+    bool showAdd = false;
+    void ToggleAdd() => showAdd = !showAdd;
+
+    class SkillGap { public string Name = ""; public string Priority = "High"; public int Frequency = 5; public int Progress = 0; public int EstWeeks = 2; public string Resource = ""; public string ResourceUrl = "#"; }
+
+    SkillGap newSkill = new();
+
+    List<SkillGap> skills = new()
+    {
+        new SkillGap { Name = "Playwright (.NET)", Priority = "High",   Frequency = 8, Progress = 30, EstWeeks = 2, Resource = "Microsoft Playwright Docs",              ResourceUrl = "https://playwright.dev/dotnet/docs/intro" },
+        new SkillGap { Name = "Azure DevOps CI",   Priority = "High",   Frequency = 7, Progress = 20, EstWeeks = 3, Resource = "Azure DevOps Labs",                     ResourceUrl = "https://azuredevopslabs.com/" },
+        new SkillGap { Name = "API Testing (REST)", Priority = "High",   Frequency = 9, Progress = 50, EstWeeks = 2, Resource = "RestSharp + Postman Newman",            ResourceUrl = "https://restsharp.dev/" },
+        new SkillGap { Name = "Docker Basics",     Priority = "Medium", Frequency = 5, Progress = 10, EstWeeks = 2, Resource = "Docker Getting Started",                ResourceUrl = "https://docs.docker.com/get-started/" },
+        new SkillGap { Name = "BDD / SpecFlow",    Priority = "Medium", Frequency = 4, Progress = 0,  EstWeeks = 2, Resource = "SpecFlow Docs",                         ResourceUrl = "https://docs.specflow.org/" },
+        new SkillGap { Name = "Performance Testing", Priority = "Low",  Frequency = 3, Progress = 0,  EstWeeks = 3, Resource = "k6 Load Testing",                      ResourceUrl = "https://k6.io/docs/" },
+    };
+
+    void UpdateProgress(SkillGap s, int val) { s.Progress = val; StateHasChanged(); }
+    void AddSkill() { if (!string.IsNullOrEmpty(newSkill.Name)) { skills.Add(newSkill); newSkill = new(); showAdd = false; } }
+}

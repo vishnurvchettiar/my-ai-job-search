@@ -1,0 +1,17 @@
+﻿services:
+  - type: web
+    name: my-ai-job-search
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://+:10000
+      - key: TrackerCsv
+        value: /data/documents/job_tracker.csv
+    disk:
+      name: job-data
+      mountPath: /data
+      sizeGB: 1

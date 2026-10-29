@@ -1,0 +1,202 @@
+﻿@page "/cold-email"
+@using JobSearchDashboard.Services
+@inject JobApplicationService AppService
+@rendermode InteractiveServer
+
+<PageTitle>Cold Email Generator — My AI Job Search</PageTitle>
+
+<div class="dashboard-header">
+    <div class="header-brand">
+        <span class="header-icon">📧</span>
+        <div>
+            <h1>Cold Email Generator</h1>
+            <p class="header-sub">Generate personalized cold emails to hiring managers & recruiters</p>
+        </div>
+    </div>
+</div>
+
+<div class="section-card">
+    <div class="section-header">
+        <h2>✍️ Generate a Cold Email</h2>
+    </div>
+    <div class="add-form">
+        <div class="form-row">
+            <div class="form-group">
+                <label>Company *</label>
+                <input @bind="company" placeholder="e.g. Infosys" class="form-input"/>
+            </div>
+            <div class="form-group">
+                <label>Target Role *</label>
+                <input @bind="role" placeholder="e.g. SDET" class="form-input"/>
+            </div>
+            <div class="form-group">
+                <label>Recipient Name</label>
+                <input @bind="recipient" placeholder="e.g. Priya Sharma" class="form-input"/>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group form-wide">
+                <label>Company-Specific Note (makes the email personal)</label>
+                <input @bind="companyNote" placeholder="e.g. your focus on QA automation CoE" class="form-input"/>
+            </div>
+        </div>
+        <button class="btn-primary" @onclick="GenerateEmail">Generate Email ⚡</button>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(generatedEmail))
+{
+    <div class="section-card">
+        <div class="section-header">
+            <h2>📨 Generated Email</h2>
+            <button class="btn-copy" @onclick="CopyEmail">📋 Copy</button>
+        </div>
+        <div class="email-output">
+            <div class="email-subject"><strong>Subject:</strong> @subject</div>
+            <hr class="email-divider"/>
+            <pre class="email-body">@generatedEmail</pre>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <div class="section-header">
+            <h2>💼 LinkedIn DM (shorter)</h2>
+        </div>
+        <div class="email-output">
+            <pre class="email-body linkedin-dm">@linkedinDm</pre>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <div class="section-header">
+            <h2>✅ Checklist Before Sending</h2>
+        </div>
+        <div class="add-form">
+            <div class="checklist">
+                <label class="check-item"><input type="checkbox" @bind="c1"/> Personalized opener with something specific about the company</label>
+                <label class="check-item"><input type="checkbox" @bind="c2"/> Verified recipient name and email address</label>
+                <label class="check-item"><input type="checkbox" @bind="c3"/> No generic phrases ("I hope this finds you well")</label>
+                <label class="check-item"><input type="checkbox" @bind="c4"/> Only ONE clear call-to-action</label>
+                <label class="check-item"><input type="checkbox" @bind="c5"/> No CV attached (offer only if they ask)</label>
+            </div>
+            @if (c1 && c2 && c3 && c4 && c5)
+            {
+                <div class="ready-banner">🚀 Ready to send! All checks passed.</div>
+            }
+            <button class="btn-primary" style="margin-top:16px" @onclick="RecordAndSave">
+                📥 Save & Record as Sent
+            </button>
+            @if (!string.IsNullOrEmpty(savedMsg))
+            {
+                <span class="success-msg">@savedMsg</span>
+            }
+        </div>
+    </div>
+}
+
+<!-- Batch Targets Table -->
+<div class="section-card">
+    <div class="section-header">
+        <h2>🎯 Pre-loaded Targets (Top Indian IT Companies)</h2>
+    </div>
+    <div class="table-wrapper">
+        <table class="apps-table">
+            <thead>
+                <tr><th>Company</th><th>Role</th><th>Specific Hook</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var t in targets)
+                {
+                    <tr class="app-row">
+                        <td class="company-name">@t.Company</td>
+                        <td class="role-cell">@t.Role</td>
+                        <td class="role-cell" style="font-size:0.8rem;color:#8b949e">@t.Note</td>
+                        <td>
+                            <button class="btn-small" @onclick="() => LoadTarget(t)">⚡ Generate</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+.email-output { padding: 20px 24px; }
+.email-subject { color: #58a6ff; margin-bottom: 12px; font-size: 0.95rem; }
+.email-divider { border: none; border-top: 1px solid #30363d; margin: 12px 0; }
+.email-body { font-family: 'Inter', sans-serif; font-size: 0.9rem; color: #e6edf3; white-space: pre-wrap; line-height: 1.7; background: #0d1117; padding: 16px; border-radius: 8px; border: 1px solid #30363d; }
+.linkedin-dm { color: #bc8cff; border-color: rgba(188,140,255,0.3); }
+.btn-copy { background: rgba(88,166,255,0.1); border: 1px solid rgba(88,166,255,0.3); color: #58a6ff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+.btn-small { background: rgba(88,166,255,0.1); border: 1px solid rgba(88,166,255,0.3); color: #58a6ff; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+.checklist { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+.check-item { display: flex; align-items: center; gap: 10px; cursor: pointer; color: #e6edf3; font-size: 0.9rem; }
+.ready-banner { background: rgba(126,231,135,0.1); border: 1px solid rgba(126,231,135,0.3); color: #7ee787; padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; font-weight: 600; }
+</style>
+
+@code {
+    string company = "", role = "SDET", recipient = "Hiring Manager", companyNote = "";
+    string generatedEmail = "", subject = "", linkedinDm = "", savedMsg = "";
+    bool c1, c2, c3, c4, c5;
+
+    record Target(string Company, string Role, string Note);
+    List<Target> targets = new()
+    {
+        new("Infosys",           "SDET",                   "focus on quality engineering and automation CoE"),
+        new("TCS",               "QA Automation Engineer",  "TCS iON digital platform initiatives"),
+        new("Wipro",             "Associate SDET",          "expansion in healthcare IT"),
+        new("HCL Technologies",  ".NET Developer",          "partnership with Microsoft on enterprise solutions"),
+        new("Cognizant",         "Java Developer",          "digital transformation projects for global clients"),
+        new("Accenture",         "SDET",                    "Test Center of Excellence and QA automation practice"),
+        new("Capgemini",         "QA Automation Engineer",  "Shift-Left testing approach in agile delivery"),
+        new("Mphasis",           ".NET Developer",          "focus on cloud-native and microservices"),
+        new("Hexaware",          "SDET",                    "AI-augmented testing services"),
+        new("Persistent Systems","Java Developer",          "engineering-first culture and open source contributions"),
+    };
+
+    void LoadTarget(Target t)
+    {
+        company = t.Company; role = t.Role; companyNote = t.Note;
+        GenerateEmail();
+    }
+
+    void GenerateEmail()
+    {
+        if (string.IsNullOrWhiteSpace(company)) return;
+        var firstName = recipient.Split(' ')[0];
+        subject = $"{role} with .NET/Automation experience — {company}";
+        var opener = string.IsNullOrEmpty(companyNote)
+            ? $"I've been following {company}'s work in software engineering"
+            : $"I noticed {companyNote} at {company} — it caught my attention and I wanted to reach out directly";
+
+        generatedEmail = $@"Hi {firstName},
+
+{opener}.
+
+I'm Vishnu Chettiar, a {role} with hands-on experience building test automation frameworks using Selenium and Playwright in C# and Java. Most recently I delivered a full-stack Blazor/.NET clinic management system with integrated automated test coverage.
+
+I'm exploring opportunities at {company} and would love to connect briefly — would you have 15 minutes this week for a quick call?
+
+Best,
+Vishnu Chettiar
+[+91-XXXXXXXXXX] | [your.email@gmail.com]
+linkedin.com/in/vishnu-chettiar | github.com/vishnurvchettiar";
+
+        linkedinDm = $"Hi {firstName}, I'm Vishnu Chettiar — {role} with experience in Selenium/Playwright automation and .NET/Blazor development. I came across {company}'s {(string.IsNullOrEmpty(companyNote) ? "engineering work" : companyNote)} and would love to connect. Happy to share my CV if there's a fit!";
+    }
+
+    void CopyEmail() { /* JS interop for clipboard - placeholder */ }
+
+    void RecordAndSave()
+    {
+        if (string.IsNullOrEmpty(company)) return;
+        AppService.Add(new JobSearchDashboard.Models.JobApplication
+        {
+            Company = company, Role = role,
+            Status = "cold_email_sent", ColdEmailSent = true,
+            Notes = $"Cold email sent to {recipient}"
+        });
+        savedMsg = "✅ Recorded in tracker!";
+        Task.Delay(3000).ContinueWith(_ => { savedMsg = ""; InvokeAsync(StateHasChanged); });
+    }
+}
